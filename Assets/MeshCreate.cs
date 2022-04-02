@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -9,7 +7,6 @@ public class MeshCreate : MonoBehaviour
     private MeshFilter _meshFilter;
     private Mesh _mesh;
     private MeshRenderer _renderer;
-    private Texture _texture;
 
     private static readonly int MainTex = Shader.PropertyToID("_MainTex");
 
@@ -29,6 +26,12 @@ public class MeshCreate : MonoBehaviour
     {
         List<Vector3> vertices = new List<Vector3>()
         {
+            /* 
+            1 <--- 0
+            |      |
+            |      |
+            3 <--- 2
+            */
             //top
             new Vector3(1,1,1),
             new Vector3(0,1,1),
@@ -68,7 +71,17 @@ public class MeshCreate : MonoBehaviour
 
         
         //set the triangles of mesh
-        int[] triangles = new int[vertices.Count / 4 * 6];
+        /*
+         top
+         0,3,1,0,2,3,
+         front
+         4,7,5,4,6,7,
+         left
+         8,11,9,8,10,11,
+         right
+         12,15,13,12,14,15
+        */
+        int[] triangles = new int[vertices.Count / 4 * 6];  //vertices = 24, triangles = 36
         for (int i = 0; i < vertices.Count / 4; i++)
         {
             triangles[i * 6] = i * 4;
@@ -78,24 +91,31 @@ public class MeshCreate : MonoBehaviour
             triangles[i * 6 + 4] = i * 4 + 2;
             triangles[i * 6 + 5] = i * 4 + 3;
         }
-        // //top
-            // 0,3,1,0,2,3,
-            // //front
-            // 4,7,5,4,6,7,
-            // //left
-            // 8,11,9,8,10,11,
-            // //right
-            // 12,15,13,12,14,15
-
 
         //set the uv of mesh
+        /* 
+        1 <--- 0
+        |      |
+        |      |
+        3 <--- 2
+        */
         Vector2[] uvs = new Vector2[vertices.Count];
-        const float t = 1 / 2f;
+        const float t = 1 / 2f; // 1 / 2 = texture / large texture
+        
+        //the uvs of top
         uvs[0] = new Vector2(t, 1.0f);
         uvs[1] = new Vector2(0, 1.0f);
         uvs[2] = new Vector2(t, t);
         uvs[3] = new Vector2(0, t);
-        for (int i = 4; i < uvs.Length; i+=4)
+        
+        //the uvs of down
+        uvs[4] = new Vector2(1.0f, t);
+        uvs[5] = new Vector2(t, t);
+        uvs[6] = new Vector2(1.0f, 0);
+        uvs[7] = new Vector2(t, 0);
+
+        //the uvs of side
+        for (int i = 8; i < uvs.Length; i+=4)
         {
             uvs[i] = new Vector2(t, t);
             uvs[i + 1] = new Vector2(0, t);
