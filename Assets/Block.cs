@@ -2,14 +2,9 @@ using System;using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Block : MonoBehaviour
+public class Block
 {
-
-    public Block(int sound1, int sound2)
-    {
-        
-    }
-
+    
 }
 
 
@@ -17,5 +12,6 @@ public enum BlockType
 {
     Air,
     GrassBlock,
-    BirchPlanks
+    BirchPlanks,
+    Dirt
 }

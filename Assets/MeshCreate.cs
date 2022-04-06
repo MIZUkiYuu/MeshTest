@@ -33,7 +33,7 @@ public class MeshCreate : MonoBehaviour
             3 <--- 2
             */
             //top
-            new Vector3(1,1,1),
+            new Vector3(1,1,1),     // 0
             new Vector3(0,1,1),
             new Vector3(1,1,0),
             new Vector3(0,1,0),
@@ -45,17 +45,17 @@ public class MeshCreate : MonoBehaviour
             new Vector3(1,0,0),
             
             //front
-            new Vector3(1, 1, 0),
-            new Vector3(0, 1, 0),
-            new Vector3(1, 0, 0),
-            new Vector3(0, 0, 0),
-            
-            //back
             new Vector3(0,1,1),
             new Vector3(1,1,1),
             new Vector3(0,0,1),
             new Vector3(1,0,1),
             
+            //back
+            new Vector3(1, 1, 0),
+            new Vector3(0, 1, 0),
+            new Vector3(1, 0, 0),
+            new Vector3(0, 0, 0),
+
             //left
             new Vector3(0, 1, 0),
             new Vector3(0, 1, 1),
@@ -66,7 +66,7 @@ public class MeshCreate : MonoBehaviour
             new Vector3(1, 1, 1),
             new Vector3(1, 1, 0),
             new Vector3(1, 0, 1),
-            new Vector3(1, 0, 0),
+            new Vector3(1, 0, 0),   //23
         };
 
         

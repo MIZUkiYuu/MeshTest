@@ -1,120 +1,74 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class GroundGen : MonoBehaviour
 {
-    public GameObject block;
-    public BlockType blockType;
-    [Range(1,64)]public int range = 64;
-    
-    private Mesh _mesh;
+    public Settings settings;
+    public GameObject CHUNK;
 
-    private static readonly int MainTex = Shader.PropertyToID("_MainTex");
-    
+    private BlockType?[,,] _blocks; // store all blocks in CHUNK
+    private List<Chunk> _chunks = new List<Chunk>();
+    private float _randomX, _randomZ;   // random parameter of Perlin Noise
+
     private void Start()
     {
-        InitMesh();
-        block.GetComponent<MeshRenderer>().material.SetTexture(MainTex, AssetDatabase.LoadAssetAtPath<Texture>(BlockTile.BlockTilePath[blockType]));
+        Random.InitState(settings.seed);
+        _randomX = Random.value * 100;
+        
+        Random.InitState(Random.Range(0,100000));
+        _randomZ = Random.value * 100;
+        TerrainGen();
+        BuildChunks();
     }
-    
-    private void InitMesh()
+    public void TerrainGen()   //generate the terrain
     {
-        _mesh = block.GetComponent<MeshFilter>().mesh;
-
-        // BlockType[,,] blocks; 
-
-        List<Vector2> uvs = new List<Vector2>();
-        List<int> triangles = new List<int>();
-        List<Vector3> vertices = new List<Vector3>();
-
-        for (int x = 0; x < range; x++)
+        int totalLength = settings.length * settings.viewDistance;
+        _blocks = new BlockType?[totalLength, 2 * settings.height, totalLength];    //store all blocks
+        
+        for (int x = 0; x < totalLength; x++)
         {
-            for (int z = 0; z < range; z++)
+            for (int z = 0; z < totalLength; z++)
             {
-                Vector3 blockPos = new Vector3(x, 1, z);
-                int faces = 0;
-                
-                //top
-                // if (blocks[x, 1, z] == BlockType.Air)
+                int y = GetY(x, z);
+                _blocks[x, y, z] = settings.blockType;
+                for (int i = 0; i < y; i++)
                 {
-                    vertices.Add(blockPos + new Vector3(1,1,1));
-                    vertices.Add(blockPos + new Vector3(0,1,1));
-                    vertices.Add(blockPos + new Vector3(1,1,0));
-                    vertices.Add(blockPos + new Vector3(0,1,0));
-                    uvs.AddRange(BlockTile.GetUVs(blockType, TileOrientation.Top));
-                    faces++;
-                }
-                //down
-                // if (blocks[x, 0, z] == BlockType.Air)
-                {
-                    vertices.Add(blockPos + new Vector3(0,0,1));
-                    vertices.Add(blockPos + new Vector3(1,0,1));
-                    vertices.Add(blockPos + new Vector3(0,0,0));
-                    vertices.Add(blockPos + new Vector3(1,0,0));
-                    uvs.AddRange(BlockTile.GetUVs(blockType,TileOrientation.Down));
-                    faces++;
-                }
-                //front
-                // if (blocks[x, 0, z + 1] == BlockType.Air)
-                {
-                    vertices.Add(blockPos + new Vector3(1,1,0));
-                    vertices.Add(blockPos + new Vector3(0,1,0));
-                    vertices.Add(blockPos + new Vector3(1,0,0));
-                    vertices.Add(blockPos + new Vector3(0,0,0));
-                    uvs.AddRange(BlockTile.GetUVs());
-                    faces++;
-                }
-                //back
-                // if (blocks[x, 0, z - 1] == BlockType.Air)
-                {
-                    vertices.Add(blockPos + new Vector3(0,1,1));
-                    vertices.Add(blockPos + new Vector3(1,1,1));
-                    vertices.Add(blockPos + new Vector3(0,0,1));
-                    vertices.Add(blockPos + new Vector3(1,0,1));
-                    uvs.AddRange(BlockTile.GetUVs());
-                    faces++;
-                }
-                //left
-                // if (blocks[x - 1, 0, z] == BlockType.Air)
-                {
-                    vertices.Add(blockPos + new Vector3(0,1,0));
-                    vertices.Add(blockPos + new Vector3(0,1,1));
-                    vertices.Add(blockPos + new Vector3(0,0,0));
-                    vertices.Add(blockPos + new Vector3(0,0,1));
-                    uvs.AddRange(BlockTile.GetUVs());
-                    faces++;
-                }
-                //right
-                // if (blocks[x + 1, 0, z] == BlockType.Air)
-                {
-                    vertices.Add(blockPos + new Vector3(1,1,1));
-                    vertices.Add(blockPos + new Vector3(1,1,0));
-                    vertices.Add(blockPos + new Vector3(1,0,1));
-                    vertices.Add(blockPos + new Vector3(1,0,0));
-                    uvs.AddRange(BlockTile.GetUVs());
-                    faces++;
-                }
-                
-                // for (int i = 0; i < faces; i++)
-                // {
-                //     triangles.AddRange(new int[] {i * 4, i * 4 + 3, i * 4 + 1, i * 4, i * 4 + 2, i * 4 + 3});
-                // }
-                
-                int tl = vertices.Count - 4 * faces;
-                for (int i = 0; i < faces; i++)
-                {
-                    triangles.AddRange(new int[] { tl + i * 4, tl + i * 4 + 3, tl + i * 4 + 1, tl + i * 4, tl + i * 4 + 2, tl + i * 4 + 3 });
+                    _blocks[x, i, z] = settings.blockType;
                 }
             }
         }
-        _mesh.vertices = vertices.ToArray();
-        _mesh.triangles = triangles.ToArray();
-        _mesh.uv = uvs.ToArray();
-        _mesh.RecalculateNormals();
+    }
 
-        block.GetComponent<MeshFilter>().mesh = _mesh;
-        block.GetComponent<MeshCollider>().sharedMesh = _mesh;
+    //use Perlin noise to generate the value of y
+    private int GetY(int x, int z)
+    {
+        float xSample = (x * settings.xScale + _randomX) / settings.relief;
+        float zSample = (z * settings.zScale + _randomZ) / settings.relief;  // z  not z + z
+        float yNoise = Mathf.Clamp(Mathf.PerlinNoise(xSample, zSample), 0, 1);
+        return (int)(yNoise * settings.heightMax);
+    }
+
+    private void GenTree(int x, int y, int z)
+    {
+        
+    }
+    
+    public void BuildChunks()
+    {
+        for (int id = 0; id < Math.Pow(settings.viewDistance, 2); id++)
+        {
+            int dx = (id / settings.viewDistance) * settings.length;
+            int dz = (id % settings.viewDistance) * settings.length;
+            Vector3 position = CHUNK.transform.position;
+            GameObject chunkPre = Instantiate(CHUNK, new Vector3(position.x + dx, position.y, position.z + dz), Quaternion.identity);
+            Chunk chunk = chunkPre.GetComponent<Chunk>();
+            _chunks.Add(chunk);
+            chunk.dx = dx;
+            chunk.dz = dz;
+            chunk.Blocks = _blocks;
+            chunk.InitMesh();
+        }
     }
 }
