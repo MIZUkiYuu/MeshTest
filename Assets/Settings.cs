@@ -18,4 +18,5 @@ public class Settings : ScriptableObject
     public int heightMax = 64;
     public float xScale = 1;
     public float zScale = 1;
+    
 }

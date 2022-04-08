@@ -55,9 +55,8 @@
      <Compile Include="Assets\Chunk.cs" />
      <Compile Include="Assets\Settings.cs" />
      <Compile Include="Assets\Block.cs" />
-     <Compile Include="Assets\BlockTile.cs" />
-     <Compile Include="Assets\TextureM.cs" />
-     <Compile Include="Assets\GroundGen.cs" />
+     <Compile Include="Assets\BlockMesh.cs" />
+     <Compile Include="Assets\ChunksGen.cs" />
      <Compile Include="Assets\MeshCreate.cs" />
  <Reference Include="UnityEngine">
  <HintPath>D:/IDE/Unity Editor/2020.3.30f1c1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>

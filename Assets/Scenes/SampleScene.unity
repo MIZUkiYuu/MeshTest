@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 523136124}
   - component: {fileID: 523136123}
   m_Layer: 0
-  m_Name: GroundGen
+  m_Name: ChunksGen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -272,7 +272,7 @@ GameObject:
   - component: {fileID: 868011346}
   - component: {fileID: 868011345}
   m_Layer: 0
-  m_Name: mesh
+  m_Name: blockMeshTest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
