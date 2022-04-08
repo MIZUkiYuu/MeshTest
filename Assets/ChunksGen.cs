@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
 using Random = UnityEngine.Random;
 
 public class ChunksGen : MonoBehaviour
@@ -22,20 +23,35 @@ public class ChunksGen : MonoBehaviour
         TerrainGen();
         BuildChunks();
     }
+
+    private int TotalLength()
+    {
+        return 2 * settings.length * settings.viewDistance + settings.length;
+    }
     private void TerrainGen()   // generate the terrain
     {
-        int totalLength = 2 * settings.length * settings.viewDistance + settings.length;
-        _blocks = new BlockType[totalLength, settings.height, totalLength];    //store all blocks
+        _blocks = new BlockType[TotalLength(), settings.height, TotalLength()];    //store all blocks
         
-        for (int x = 0; x < totalLength; x++)
+        for (int x = 0; x < TotalLength(); x++)
         {
-            for (int z = 0; z < totalLength; z++)
+            for (int z = 0; z < TotalLength(); z++)
             {
                 int y = GetY(x, z);
-                _blocks[x, y, z] = settings.blockType;
+                
+                _blocks[x, y, z] = settings.blockType;  // the surface
+                GenTree(x, y, z);
+                
+                // bedrock layer
                 for (int i = 0; i < y; i++)
                 {
-                    _blocks[x, i, z] = BlockType.Dirt;
+                    if (i < 5)
+                    {
+                        _blocks[x, i, z] = BlockType.Bedrock;
+                    }
+                    else
+                    {
+                        _blocks[x, i, z] = BlockType.Dirt;
+                    }
                 }
             }
         }
@@ -52,7 +68,30 @@ public class ChunksGen : MonoBehaviour
 
     private void GenTree(int x, int y, int z)
     {
-        
+        if (Random.Range(0, 100) == 0 && x > 2 && x < TotalLength() - 3 && z > 2 && z < TotalLength() - 3 && y < settings.height - 20)
+        {
+            int height = Random.Range(4, 10);
+            int treeType = Random.Range((int)BlockType.AcaciaLog, (int)BlockType.SpruceLog);
+            for (int i = 1; i < height; i++)
+            {
+                _blocks[x, y + i, z] = (BlockType)treeType;
+                _blocks[x, y + height + 1, z] = (BlockType)(treeType + 18);
+                for (int xL = -2; xL < 3; xL++)  // xl: the x of leaves 
+                {
+                    for (int zL = -2; zL < 3; zL++)
+                    {
+                        for (int yL = 0; yL < 4; yL++)
+                        {
+                            if(yL == 3 && (xL == -2 || xL == 2 || zL == -2 || zL == 2)) continue;
+                            if(yL == 3)  _blocks[x + xL, y + height, z + zL] = (BlockType) (treeType + 18);
+                            if(yL < 3 && xL == 0 && zL == 0) continue;
+                            if (yL < 3 && (xL == -2 || xL == 2) && xL == zL && Random.value < 0.8f) continue;
+                            _blocks[x + xL, y + height - 3 + yL, z + zL] = (BlockType)(treeType + 18);
+                        }
+                    }
+                }
+            }
+        }
     }
     
     private void BuildChunks()

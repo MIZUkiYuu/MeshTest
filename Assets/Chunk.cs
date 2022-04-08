@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -25,67 +26,49 @@ public class Chunk : MonoBehaviour
                 {
                     if (Blocks[x, y, z] != BlockType.Air)
                     {
-                        Vector3 blockPos = new Vector3(x - dx, y, z - dz);
+                        //Vector3 blockPos = new Vector3(x - dx, y, z - dz);
                         int faces = 0;
                     
                         //top
-                        if(y == totalLength - 1 || Blocks[x, y + 1, z] == BlockType.Air)
+                        if(y == totalLength - 1 || !BlockMesh.BlockTilePos[Blocks[x, y + 1, z]].OpaqueTop)
                         {
-                            vertices.Add(blockPos + new Vector3(1,1,1));
-                            vertices.Add(blockPos + new Vector3(0,1,1));
-                            vertices.Add(blockPos + new Vector3(1,1,0));
-                            vertices.Add(blockPos + new Vector3(0,1,0));
-                            uvs.AddRange(BlockMesh.BlockTilePos[Blocks[x,y,z]].GetUVs(TileType.CubeTop));
+                            vertices.AddRange(GetVertices(x, y, z, Direction.Top));
+                            uvs.AddRange(GetUVs(x, y, z, TileType.CubeTop));
                             faces++;
                         }
                         //down
-                        if (y == 0 || Blocks[x, y - 1, z] == BlockType.Air)
+                        if (y == 0 || !BlockMesh.BlockTilePos[Blocks[x, y - 1, z]].OpaqueDown)
                         {
-                            vertices.Add(blockPos + new Vector3(0,0,1));
-                            vertices.Add(blockPos + new Vector3(1,0,1));
-                            vertices.Add(blockPos + new Vector3(0,0,0));
-                            vertices.Add(blockPos + new Vector3(1,0,0));
-                            uvs.AddRange(BlockMesh.BlockTilePos[Blocks[x,y,z]].GetUVs(TileType.CubeDown));
+                            vertices.AddRange(GetVertices(x, y, z, Direction.Down));
+                            uvs.AddRange(GetUVs(x, y, z, TileType.CubeDown));
                             faces++;
                         }
                         //front
-                        if (z == totalLength - 1 || Blocks[x, y, z + 1] == BlockType.Air)
+                        if (z == totalLength - 1 || !BlockMesh.BlockTilePos[Blocks[x, y, z + 1]].OpaqueSide)
                         {
-                            vertices.Add(blockPos + new Vector3(0,1,1));
-                            vertices.Add(blockPos + new Vector3(1,1,1));
-                            vertices.Add(blockPos + new Vector3(0,0,1));
-                            vertices.Add(blockPos + new Vector3(1,0,1));
-                            uvs.AddRange(BlockMesh.BlockTilePos[Blocks[x,y,z]].GetUVs(TileType.CubeSide));
+                            vertices.AddRange(GetVertices(x, y, z, Direction.Front));
+                            uvs.AddRange(GetUVs(x, y, z));
                             faces++;
                         }
                         //back
-                        if (z == 0 || Blocks[x, y, z - 1] == BlockType.Air)
+                        if (z == 0 || !BlockMesh.BlockTilePos[Blocks[x, y, z - 1]].OpaqueSide)
                         {
-                            vertices.Add(blockPos + new Vector3(1,1,0));
-                            vertices.Add(blockPos + new Vector3(0,1,0));
-                            vertices.Add(blockPos + new Vector3(1,0,0));
-                            vertices.Add(blockPos + new Vector3(0,0,0));
-                            uvs.AddRange(BlockMesh.BlockTilePos[Blocks[x,y,z]].GetUVs(TileType.CubeSide));
-                            faces++;
-                        }
-                        //left
-                        if (x == 0 || Blocks[x - 1, y, z] == BlockType.Air)
-                        {
-                            vertices.Add(blockPos + new Vector3(0,1,0));
-                            vertices.Add(blockPos + new Vector3(0,1,1));
-                            vertices.Add(blockPos + new Vector3(0,0,0));
-                            vertices.Add(blockPos + new Vector3(0,0,1));
-                            uvs.AddRange(BlockMesh.BlockTilePos[Blocks[x,y,z]].GetUVs(TileType.CubeSide));
+                            vertices.AddRange(GetVertices(x, y, z, Direction.Back));
+                            uvs.AddRange(GetUVs(x, y, z));
                             faces++;
                         }
                         //right
-                        if (x == totalLength - 1  || Blocks[x + 1, y, z] == BlockType.Air)
+                        if (x == totalLength - 1  || !BlockMesh.BlockTilePos[Blocks[x + 1, y, z]].OpaqueSide)
                         {
-                            vertices.Add(blockPos + new Vector3(1,1,1));
-                            vertices.Add(blockPos + new Vector3(1,1,0));
-                            vertices.Add(blockPos + new Vector3(1,0,1));
-                            vertices.Add(blockPos + new Vector3(1,0,0));
-                            uvs.AddRange(BlockMesh.BlockTilePos[Blocks[x,y,z]].GetUVs(TileType.CubeSide));
+                            vertices.AddRange(GetVertices(x, y, z, Direction.Right));
+                            uvs.AddRange(GetUVs(x, y, z));
+                            faces++;
+                        }
+                        //left
+                        if (x == 0 || !BlockMesh.BlockTilePos[Blocks[x - 1, y, z]].OpaqueSide)
+                        {
+                            vertices.AddRange(GetVertices(x, y, z, Direction.Left));
+                            uvs.AddRange(GetUVs(x, y, z));
                             faces++;
                         }
 
@@ -105,5 +88,15 @@ public class Chunk : MonoBehaviour
 
        GetComponent<MeshFilter>().mesh = mesh;
        GetComponent<MeshCollider>().sharedMesh = mesh;
+    }
+
+    private Vector3[] GetVertices(int x, int y, int z, Direction direction)
+    {
+        return BlockMesh.BlockTilePos[Blocks[x, y, z]].Vertices(new Vector3(x - dx, y, z - dz), direction);
+    }
+    
+    private Vector2[] GetUVs(int x, int y, int z, TileType tileType = TileType.CubeSide)
+    {
+        return BlockMesh.BlockTilePos[Blocks[x, y, z]].UVs(tileType);
     }
 }

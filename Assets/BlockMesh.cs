@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
+
 
 public enum TileType
 {
@@ -18,22 +20,31 @@ public class BlockMesh
     private const float Width = 1 / 16.0f;   // the width of single tile
     private const float Crop = 0.001f;   // Avoid crop errors in Unity
 
-    private BlockMesh(int side)
+    public bool OpaqueSide;
+    public bool OpaqueTop;  
+    public bool OpaqueDown;
+    private BlockMesh(int side, bool opaque = true)
     {
         _side = _top = _down = side;    // The six faces are of the same texture
+        OpaqueSide = OpaqueTop = OpaqueDown = opaque;
     }
 
-    private BlockMesh(int side, int top)
+    private BlockMesh(int side, int top, bool opaqueSide = true, bool opaqueTop = true)
     {
         _side = side;
-        _top = _down = top; 
+        _top = _down = top;
+        OpaqueSide = opaqueSide;
+        OpaqueTop = OpaqueDown = opaqueTop;
     }
 
-    private BlockMesh(int side, int top, int down)
+    private BlockMesh(int side, int top, int down, bool opaqueSide = true, bool opaqueTop = true, bool opaqueDown = true)
     {
         _side = side;
         _top = top;
         _down = down;
+        OpaqueSide = opaqueSide;
+        OpaqueTop = opaqueTop;
+        OpaqueDown = opaqueDown;
     }
 
     private Vector2[] CubeTilePos(int num)
@@ -46,8 +57,47 @@ public class BlockMesh
             new Vector2(_xPos + Width - Crop, _yPos + Crop), new Vector2(_xPos + Crop, _yPos + Crop)
         };
     }
+
+    public Vector3[] Vertices(Vector3 blockPos, Direction direction)
+    {
+        return direction switch
+        {
+            Direction.Top => new[]
+            {
+                blockPos + new Vector3(1, 1, 1), blockPos + new Vector3(0, 1, 1), 
+                blockPos + new Vector3(1, 1, 0), blockPos + new Vector3(0, 1, 0)
+            },
+            Direction.Down => new[]
+            {
+                blockPos + new Vector3(0, 0, 1), blockPos + new Vector3(1, 0, 1), 
+                blockPos + new Vector3(0, 0, 0), blockPos + new Vector3(1, 0, 0)
+            },
+            Direction.Front => new[]
+            {
+                blockPos + new Vector3(0, 1, 1), blockPos + new Vector3(1, 1, 1), 
+                blockPos + new Vector3(0, 0, 1), blockPos + new Vector3(1, 0, 1)
+            },
+            Direction.Back => new[]
+            {
+                blockPos + new Vector3(1, 1, 0), blockPos + new Vector3(0, 1, 0), 
+                blockPos + new Vector3(1, 0, 0), blockPos + new Vector3(0, 0, 0)
+            },
+            Direction.Right => new[]
+            {
+                blockPos + new Vector3(1, 1, 1), blockPos + new Vector3(1, 1, 0), 
+                blockPos + new Vector3(1, 0, 1), blockPos + new Vector3(1, 0, 0)
+            },
+            Direction.Left => new[]
+            {
+                blockPos + new Vector3(0, 1, 0), blockPos + new Vector3(0, 1, 1), 
+                blockPos + new Vector3(0, 0, 0), blockPos + new Vector3(0, 0, 1)
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+        };
+    }
     
-    public Vector2[] GetUVs(TileType to)
+    
+    public Vector2[] UVs(TileType to = TileType.CubeSide, bool twoSide = false)
     {
         switch (to)
         {
@@ -56,15 +106,12 @@ public class BlockMesh
 
             case TileType.CubeDown:
                 return CubeTilePos(_down);
-
-            case TileType.CubeSide:
-                return CubeTilePos(_side);
-
+            
             case TileType.FlowerSide:
                 break;
             
             default:
-                throw new ArgumentOutOfRangeException(nameof(to), to, null);
+                return CubeTilePos(_side);
         }
         return new Vector2[] { };
     }
@@ -72,6 +119,7 @@ public class BlockMesh
 
     public static readonly Dictionary<BlockType, BlockMesh> BlockTilePos = new Dictionary<BlockType, BlockMesh>()
     {
+        {BlockType.Air, new BlockMesh(255, false)},
         {BlockType.GrassBlock, new BlockMesh(0,1,2)},
         {BlockType.Dirt, new BlockMesh(2)},
         {BlockType.Grass, new BlockMesh(3)},
@@ -136,12 +184,12 @@ public class BlockMesh
         {BlockType.StrippedJungleWood, new BlockMesh(64)},
         {BlockType.StrippedOakWood, new BlockMesh(65)},
         {BlockType.StrippedSpruceWood, new BlockMesh(66)},
-        {BlockType.AcaciaLeaves, new BlockMesh(73)},
-        {BlockType.BirchLeaves, new BlockMesh(74)},
-        {BlockType.DarkOakLeaves, new BlockMesh(75)},
-        {BlockType.JungleLeaves, new BlockMesh(76)},
-        {BlockType.OakLeaves, new BlockMesh(77)},
-        {BlockType.SpruceLeaves, new BlockMesh(78)},
+        {BlockType.AcaciaLeaves, new BlockMesh(73, false)},
+        {BlockType.BirchLeaves, new BlockMesh(74, false)},
+        {BlockType.DarkOakLeaves, new BlockMesh(75, false)},
+        {BlockType.JungleLeaves, new BlockMesh(76, false)},
+        {BlockType.OakLeaves, new BlockMesh(77, false)},
+        {BlockType.SpruceLeaves, new BlockMesh(78, false)},
         {BlockType.Glass, new BlockMesh(79)},
         {BlockType.BlackStainedGlass, new BlockMesh(80)},
         {BlockType.BlueStainedGlass, new BlockMesh(81)},

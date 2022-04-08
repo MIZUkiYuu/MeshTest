@@ -1,10 +1,3 @@
-
-public class Block
-{
-  
-}
-
-
 public enum BlockType
 {
     Air,
@@ -31,4 +24,9 @@ public enum BlockType
     PinkStainedGlass, PurpleStainedGlass, RedStainedGlass, WhiteStainedGlass, YellowStainedGlass, 
     // quartz
     QuartzBlock, SmoothQuartzBlock, QuartzPillar, ChiseledQuartzBlock, QuartzBricks
+}
+
+public enum Direction
+{
+   Top, Down, Front, Back, Right, Left
 }

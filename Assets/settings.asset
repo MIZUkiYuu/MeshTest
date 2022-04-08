@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blockType: 1
   length: 16
-  height: 64
+  height: 128
   viewDistance: 10
-  seed: 0
-  relief: 100
+  seed: 1
+  relief: 40
   heightMax: 64
   xScale: 1
   zScale: 1
