@@ -15,7 +15,7 @@ public class Settings : ScriptableObject
     [Header("Terrain Gen Parameter")]
     public int seed = 0;
     public float relief = 100;
-    public int heightMax = 64;
+    public int terrainHeightMax = 64;
     public float xScale = 1;
     public float zScale = 1;
     

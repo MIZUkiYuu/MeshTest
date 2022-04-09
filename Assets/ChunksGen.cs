@@ -39,7 +39,8 @@ public class ChunksGen : MonoBehaviour
                 int y = GetY(x, z);
                 
                 _blocks[x, y, z] = settings.blockType;  // the surface
-                GenTree(x, y, z);
+                GrowGrass(x,y,z);
+                GrowTree(x, y, z);
                 
                 // bedrock layer
                 for (int i = 0; i < y; i++)
@@ -63,12 +64,21 @@ public class ChunksGen : MonoBehaviour
         float xSample = (x * settings.xScale + _randomX) / settings.relief;
         float zSample = (z * settings.zScale + _randomZ) / settings.relief;  // z  not z + z
         float yNoise = Mathf.Clamp(Mathf.PerlinNoise(xSample, zSample), 0, 1);
-        return (int)(yNoise * settings.heightMax);
+        return (int)(yNoise * settings.terrainHeightMax);
     }
 
-    private void GenTree(int x, int y, int z)
+    private void GrowGrass(int x, int y, int z)
     {
-        if (Random.Range(0, 100) == 0 && x > 2 && x < TotalLength() - 3 && z > 2 && z < TotalLength() - 3 && y < settings.height - 20)
+        if (Random.Range(1, 5) == 1 && x > 0 && x < TotalLength() - 1 && z > 0 && z < TotalLength() - 1 && y < settings.height - 2)
+        {
+            int grassType = Random.Range((int)BlockType.Grass, (int)BlockType.Peony);
+            _blocks[x, y + 1, z] = (BlockType)grassType;
+        }
+
+    }
+    private void GrowTree(int x, int y, int z)
+    {
+        if (Random.Range(1, 99) == 1 && x > 2 && x < TotalLength() - 3 && z > 2 && z < TotalLength() - 3 && y < settings.height - 20)
         {
             int height = Random.Range(4, 10);
             int treeType = Random.Range((int)BlockType.AcaciaLog, (int)BlockType.SpruceLog);

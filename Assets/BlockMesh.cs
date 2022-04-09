@@ -6,10 +6,7 @@ using UnityEngine;
 
 public enum TileType
 {
-    // full block tiles
-    CubeSide, CubeTop, CubeDown,
-    // flower
-    FlowerSide
+    CubeSide, CubeTop, CubeDown
 }
 
 public class BlockMesh
@@ -19,22 +16,27 @@ public class BlockMesh
     private const float Tiles = 16.0f;   // 16 * 16 tiles in one block_texture.png
     private const float Width = 1 / 16.0f;   // the width of single tile
     private const float Crop = 0.001f;   // Avoid crop errors in Unity
+    private const float CrossPointB = 0.85355339f;   // (2 + √2)/4
+    private const float CrossPointS = 0.1464466f;    // (2 - √2)/4
 
     public bool OpaqueSide;
     public bool OpaqueTop;  
     public bool OpaqueDown;
-    private BlockMesh(int side, bool opaque = true)
+    public bool CrossTileType;
+    private BlockMesh(int side, bool opaque = true, bool cross = false)
     {
         _side = _top = _down = side;    // The six faces are of the same texture
         OpaqueSide = OpaqueTop = OpaqueDown = opaque;
+        CrossTileType = cross;
     }
 
-    private BlockMesh(int side, int top, bool opaqueSide = true, bool opaqueTop = true)
+    private BlockMesh(int side, int top, bool opaqueSide = true, bool opaqueTop = true, bool cross = false)
     {
         _side = side;
         _top = _down = top;
         OpaqueSide = opaqueSide;
         OpaqueTop = OpaqueDown = opaqueTop;
+        CrossTileType = cross;
     }
 
     private BlockMesh(int side, int top, int down, bool opaqueSide = true, bool opaqueTop = true, bool opaqueDown = true)
@@ -47,6 +49,11 @@ public class BlockMesh
         OpaqueDown = opaqueDown;
     }
 
+    public bool IsOpaqueCube()
+    {
+        return OpaqueSide && OpaqueTop && OpaqueDown;
+    }
+    
     private Vector2[] CubeTilePos(int num)
     {
         _xPos = (int)(num / 16) / Tiles;
@@ -58,7 +65,8 @@ public class BlockMesh
         };
     }
 
-    public Vector3[] Vertices(Vector3 blockPos, Direction direction)
+    
+    public Vector3[] CubeVertices(Vector3 blockPos, Direction direction)
     {
         return direction switch
         {
@@ -95,44 +103,66 @@ public class BlockMesh
             _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
         };
     }
-    
-    
+
+    public Vector3[] CrossVertices(Vector3 blockPos)
+    {
+        return new[]
+        {
+            // south-east
+            blockPos + new Vector3(CrossPointB, 1, CrossPointB), blockPos + new Vector3(CrossPointS, 1, CrossPointS),
+            blockPos + new Vector3(CrossPointB, 0, CrossPointB), blockPos + new Vector3(CrossPointS, 0, CrossPointS),
+            // north-east
+            blockPos + new Vector3(CrossPointS, 1, CrossPointB), blockPos + new Vector3(CrossPointB, 1, CrossPointS),
+            blockPos + new Vector3(CrossPointS, 0, CrossPointB), blockPos + new Vector3(CrossPointB, 0, CrossPointS)
+            // // north-west
+            // blockPos + new Vector3(CrossPointS, 1, CrossPointS), blockPos + new Vector3(CrossPointB, 1, CrossPointB),
+            // blockPos + new Vector3(CrossPointS, 0, CrossPointS), blockPos + new Vector3(CrossPointB, 0, CrossPointB),
+            // //south-west
+            // blockPos + new Vector3(CrossPointB, 1, CrossPointS), blockPos + new Vector3(CrossPointS, 1, CrossPointB),
+            // blockPos + new Vector3(CrossPointB, 0, CrossPointS), blockPos + new Vector3(CrossPointS, 0, CrossPointB),
+        };
+    }
+
+    public static int[] Triangles(int faces, int nums)
+    {
+        List<int> tri = new List<int>();
+        for (int i = 0; i < faces; i++)
+        {
+            tri.AddRange(new[] {nums + i * 4, nums + i * 4 + 3, nums + i * 4 + 1, nums + i * 4, nums + i * 4 + 2, nums + i * 4 + 3});
+        }
+        return tri.ToArray();
+    }
+
     public Vector2[] UVs(TileType to = TileType.CubeSide, bool twoSide = false)
     {
         switch (to)
         {
             case TileType.CubeTop:
                 return CubeTilePos(_top);
-
             case TileType.CubeDown:
                 return CubeTilePos(_down);
-            
-            case TileType.FlowerSide:
-                break;
-            
             default:
                 return CubeTilePos(_side);
         }
-        return new Vector2[] { };
     }
     
 
     public static readonly Dictionary<BlockType, BlockMesh> BlockTilePos = new Dictionary<BlockType, BlockMesh>()
     {
-        {BlockType.Air, new BlockMesh(255, false)},
+        {BlockType.Air, new BlockMesh(25, false)},
         {BlockType.GrassBlock, new BlockMesh(0,1,2)},
         {BlockType.Dirt, new BlockMesh(2)},
-        {BlockType.Grass, new BlockMesh(3)},
-        {BlockType.TallGrass, new BlockMesh(4, 5)},
-        {BlockType.LilyOfTheValley, new BlockMesh(6)},
-        {BlockType.Dandelion, new BlockMesh(7)},
-        {BlockType.Poppy, new BlockMesh(8)},
-        {BlockType.Allium, new BlockMesh(9)},
-        {BlockType.OxeyeDaisy, new BlockMesh(10)},
-        {BlockType.WhiteTulip, new BlockMesh(11)},
-        {BlockType.OrangeTulip, new BlockMesh(12)},
-        {BlockType.PinkTulip, new BlockMesh(13)},
-        {BlockType.Peony, new BlockMesh(14, 15)},
+        {BlockType.Grass, new BlockMesh(3, false ,true)},
+        {BlockType.TallGrass, new BlockMesh(4, 5,false, false, true)},
+        {BlockType.LilyOfTheValley, new BlockMesh(6, false, true)},
+        {BlockType.Dandelion, new BlockMesh(7, false, true)},
+        {BlockType.Poppy, new BlockMesh(8, false, true)},
+        {BlockType.Allium, new BlockMesh(9, false, true)},
+        {BlockType.OxeyeDaisy, new BlockMesh(10, false, true)},
+        {BlockType.WhiteTulip, new BlockMesh(11, false, true)},
+        {BlockType.OrangeTulip, new BlockMesh(12, false, true)},
+        {BlockType.PinkTulip, new BlockMesh(13, false, true)},
+        {BlockType.Peony, new BlockMesh(14, 15, false, false, true)},
         {BlockType.Cobblestone, new BlockMesh(16)},
         {BlockType.Stone, new BlockMesh(17)},
         {BlockType.SmoothStone, new BlockMesh(18)},

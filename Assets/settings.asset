@@ -17,7 +17,7 @@ MonoBehaviour:
   height: 128
   viewDistance: 10
   seed: 1
-  relief: 40
-  heightMax: 64
+  relief: 80
+  terrainHeightMax: 64
   xScale: 1
   zScale: 1
