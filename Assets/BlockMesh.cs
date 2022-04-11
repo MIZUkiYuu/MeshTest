@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
 
 
@@ -49,11 +48,6 @@ public class BlockMesh
         OpaqueDown = opaqueDown;
     }
 
-    public bool IsOpaqueCube()
-    {
-        return OpaqueSide && OpaqueTop && OpaqueDown;
-    }
-    
     private Vector2[] CubeTilePos(int num)
     {
         _xPos = (int)(num / 16) / Tiles;
@@ -64,9 +58,8 @@ public class BlockMesh
             new Vector2(_xPos + Width - Crop, _yPos + Crop), new Vector2(_xPos + Crop, _yPos + Crop)
         };
     }
-
     
-    public Vector3[] CubeVertices(Vector3 blockPos, Direction direction)
+    public static Vector3[] CubeVertices(Vector3 blockPos, Direction direction)
     {
         return direction switch
         {
@@ -104,22 +97,22 @@ public class BlockMesh
         };
     }
 
-    public Vector3[] CrossVertices(Vector3 blockPos)
+    public static Vector3[] CrossVertices(Vector3 blockPos)
     {
         return new[]
         {
             // south-east
-            blockPos + new Vector3(CrossPointB, 1, CrossPointB), blockPos + new Vector3(CrossPointS, 1, CrossPointS),
-            blockPos + new Vector3(CrossPointB, 0, CrossPointB), blockPos + new Vector3(CrossPointS, 0, CrossPointS),
+            blockPos + new Vector3(CrossPointB, 1-Crop, CrossPointB), blockPos + new Vector3(CrossPointS, 1-Crop, CrossPointS),
+            blockPos + new Vector3(CrossPointB, 0-Crop, CrossPointB), blockPos + new Vector3(CrossPointS, 0-Crop, CrossPointS),
             // north-east
-            blockPos + new Vector3(CrossPointS, 1, CrossPointB), blockPos + new Vector3(CrossPointB, 1, CrossPointS),
-            blockPos + new Vector3(CrossPointS, 0, CrossPointB), blockPos + new Vector3(CrossPointB, 0, CrossPointS)
-            // // north-west
-            // blockPos + new Vector3(CrossPointS, 1, CrossPointS), blockPos + new Vector3(CrossPointB, 1, CrossPointB),
-            // blockPos + new Vector3(CrossPointS, 0, CrossPointS), blockPos + new Vector3(CrossPointB, 0, CrossPointB),
-            // //south-west
-            // blockPos + new Vector3(CrossPointB, 1, CrossPointS), blockPos + new Vector3(CrossPointS, 1, CrossPointB),
-            // blockPos + new Vector3(CrossPointB, 0, CrossPointS), blockPos + new Vector3(CrossPointS, 0, CrossPointB),
+            blockPos + new Vector3(CrossPointS, 1-Crop, CrossPointB), blockPos + new Vector3(CrossPointB, 1-Crop, CrossPointS),
+            blockPos + new Vector3(CrossPointS, 0-Crop, CrossPointB), blockPos + new Vector3(CrossPointB, 0-Crop, CrossPointS),
+            // north-west
+            blockPos + new Vector3(CrossPointS, 1-Crop, CrossPointS), blockPos + new Vector3(CrossPointB, 1-Crop, CrossPointB),
+            blockPos + new Vector3(CrossPointS, 0-Crop, CrossPointS), blockPos + new Vector3(CrossPointB, 0-Crop, CrossPointB),
+            //south-west
+            blockPos + new Vector3(CrossPointB, 1-Crop, CrossPointS), blockPos + new Vector3(CrossPointS, 1-Crop, CrossPointB),
+            blockPos + new Vector3(CrossPointB, 0-Crop, CrossPointS), blockPos + new Vector3(CrossPointS, 0-Crop, CrossPointB),
         };
     }
 
@@ -241,7 +234,7 @@ public class BlockMesh
         {BlockType.SmoothQuartzBlock, new BlockMesh(97)},
         {BlockType.QuartzPillar, new BlockMesh(98, 99)},
         {BlockType.ChiseledQuartzBlock, new BlockMesh(100, 101)},
-        {BlockType.QuartzBricks, new BlockMesh(102)},
+        {BlockType.QuartzBricks, new BlockMesh(102)}
         
     };
 }

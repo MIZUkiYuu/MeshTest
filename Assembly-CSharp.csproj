@@ -54,6 +54,7 @@
   <ItemGroup>
      <Compile Include="Assets\Chunk.cs" />
      <Compile Include="Assets\Settings.cs" />
+     <Compile Include="Assets\Plant.cs" />
      <Compile Include="Assets\Block.cs" />
      <Compile Include="Assets\BlockMesh.cs" />
      <Compile Include="Assets\ChunksGen.cs" />

@@ -1,3 +1,23 @@
+using UnityEngine;
+
+public static class Block
+{
+    public static void SetBlock(int x, int y, int z, BlockType blockType)
+    {
+        BlockType[,,] blocks = ChunksGen.Blocks;
+        blocks[x, y, z] = blockType;
+        ChunksGen.Blocks = blocks;
+    }
+    
+    public static void SetBlock(int x, int y, int z, BlockType blockType, RangeInt blockMask)
+    {
+        BlockType[,,] blocks = ChunksGen.Blocks;
+        if (blockMask.start < (int)blocks[x, y, z] && (int)blocks[x, y, z] < blockMask.end) return;
+        blocks[x, y, z] = blockType;
+        ChunksGen.Blocks = blocks;
+    }
+}
+
 public enum BlockType
 {
     Air,

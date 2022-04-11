@@ -1,122 +1,79 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SocialPlatforms;
 using Random = UnityEngine.Random;
 
 public class ChunksGen : MonoBehaviour
 {
-    public Settings settings;
     public GameObject CHUNK;
 
-    private BlockType[,,] _blocks; // store all blocks in all chunks
+    private Settings _settings;
+    public static BlockType[,,] Blocks; // store all blocks in all chunks
     private List<Chunk> _chunks = new List<Chunk>();
     private float _randomX, _randomZ;   // random parameter of Perlin Noise
 
     private void Start()
     {
-        Random.InitState(settings.seed);
+        _settings = Resources.Load<Settings>("settings");
+        
+        Random.InitState(_settings.seed);
         _randomX = Random.value * 100;
         
         Random.InitState(Random.Range(0,100000));
         _randomZ = Random.value * 100;
-        TerrainGen();
-        BuildChunks();
+
+        WorldGen();
+        GenChunks();
     }
 
     private int TotalLength()
     {
-        return 2 * settings.length * settings.viewDistance + settings.length;
+        return 2 * _settings.chunkLength * _settings.viewDistance + _settings.chunkLength;
     }
-    private void TerrainGen()   // generate the terrain
+    private void WorldGen()   // generate the terrain
     {
-        _blocks = new BlockType[TotalLength(), settings.height, TotalLength()];    //store all blocks
+        Blocks = new BlockType[TotalLength(), _settings.chunkHeight, TotalLength()];    //store all blocks
         
         for (int x = 0; x < TotalLength(); x++)
         {
             for (int z = 0; z < TotalLength(); z++)
             {
-                int y = GetY(x, z);
+                int y = GetYFromPerlinNoise(x, z);
                 
-                _blocks[x, y, z] = settings.blockType;  // the surface
-                GrowGrass(x,y,z);
-                GrowTree(x, y, z);
-                
-                // bedrock layer
-                for (int i = 0; i < y; i++)
+                Blocks[x, y, z] = BlockType.GrassBlock;  // the surface
+
+                for (int i = 0; i < _settings.chunkHeight; i++)
                 {
-                    if (i < 5)
-                    {
-                        _blocks[x, i, z] = BlockType.Bedrock;
-                    }
-                    else
-                    {
-                        _blocks[x, i, z] = BlockType.Dirt;
-                    }
+                    if (i <= 4) Blocks[x, i, z] = BlockType.Bedrock;
+                    if (4 < i && i < y) Blocks[x, i, z] = BlockType.Dirt;
                 }
+                Plant.Generation(x, y + 1, z);
             }
         }
     }
 
     //use Perlin noise to generate the value of y
-    private int GetY(int x, int z)
+    private int GetYFromPerlinNoise(int x, int z)
     {
-        float xSample = (x * settings.xScale + _randomX) / settings.relief;
-        float zSample = (z * settings.zScale + _randomZ) / settings.relief;  // z  not z + z
+        float xSample = (x * _settings.xScale + _randomX) / _settings.relief;
+        float zSample = (z * _settings.zScale + _randomZ) / _settings.relief;
         float yNoise = Mathf.Clamp(Mathf.PerlinNoise(xSample, zSample), 0, 1);
-        return (int)(yNoise * settings.terrainHeightMax);
+        return (int)(yNoise * _settings.terrainHeightMax);
     }
 
-    private void GrowGrass(int x, int y, int z)
+    private void GenChunks()
     {
-        if (Random.Range(1, 5) == 1 && x > 0 && x < TotalLength() - 1 && z > 0 && z < TotalLength() - 1 && y < settings.height - 2)
+        for (int id = 0; id < Math.Pow(2 * _settings.viewDistance + 1, 2); id++)
         {
-            int grassType = Random.Range((int)BlockType.Grass, (int)BlockType.Peony);
-            _blocks[x, y + 1, z] = (BlockType)grassType;
-        }
-
-    }
-    private void GrowTree(int x, int y, int z)
-    {
-        if (Random.Range(1, 99) == 1 && x > 2 && x < TotalLength() - 3 && z > 2 && z < TotalLength() - 3 && y < settings.height - 20)
-        {
-            int height = Random.Range(4, 10);
-            int treeType = Random.Range((int)BlockType.AcaciaLog, (int)BlockType.SpruceLog);
-            for (int i = 1; i < height; i++)
-            {
-                _blocks[x, y + i, z] = (BlockType)treeType;
-                _blocks[x, y + height + 1, z] = (BlockType)(treeType + 18);
-                for (int xL = -2; xL < 3; xL++)  // xl: the x of leaves 
-                {
-                    for (int zL = -2; zL < 3; zL++)
-                    {
-                        for (int yL = 0; yL < 4; yL++)
-                        {
-                            if(yL == 3 && (xL == -2 || xL == 2 || zL == -2 || zL == 2)) continue;
-                            if(yL == 3)  _blocks[x + xL, y + height, z + zL] = (BlockType) (treeType + 18);
-                            if(yL < 3 && xL == 0 && zL == 0) continue;
-                            if (yL < 3 && (xL == -2 || xL == 2) && xL == zL && Random.value < 0.8f) continue;
-                            _blocks[x + xL, y + height - 3 + yL, z + zL] = (BlockType)(treeType + 18);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    private void BuildChunks()
-    {
-        for (int id = 0; id < Math.Pow(2 * settings.viewDistance + 1, 2); id++)
-        {
-            int dx = (id / (2 * settings.viewDistance + 1)) * settings.length;
-            int dz = (id % (2 * settings.viewDistance + 1)) * settings.length;
+            int dx = (id / (2 * _settings.viewDistance + 1)) * _settings.chunkLength;
+            int dz = (id % (2 * _settings.viewDistance + 1)) * _settings.chunkLength;
             Vector3 position = CHUNK.transform.position;
             GameObject chunkPre = Instantiate(CHUNK, new Vector3(position.x + dx, position.y, position.z + dz), Quaternion.identity);
             Chunk chunk = chunkPre.GetComponent<Chunk>();
             _chunks.Add(chunk);
             chunk.dx = dx;
             chunk.dz = dz;
-            chunk.Blocks = _blocks;
+            chunk.Blocks = Blocks;
             chunk.InitMesh();
         }
     }

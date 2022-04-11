@@ -5,10 +5,15 @@ using Random = UnityEngine.Random;
 
 public class Chunk : MonoBehaviour
 {
-    public Settings settings;
 
     public int dx, dz;
     public BlockType[,,] Blocks; // All blocks in loaded chunks : GroundGen.cs -> chunk.Blocks = _blocks;
+    private Settings _settings;
+
+    private void Awake()
+    {
+        _settings = Resources.Load<Settings>("settings");
+    }
 
     public void InitMesh()
     {
@@ -18,12 +23,12 @@ public class Chunk : MonoBehaviour
         List<int> triangles = new List<int>();
         List<Vector3> vertices = new List<Vector3>();
 
-        int totalLength = 2 * settings.length * settings.viewDistance + settings.length;
-        for (int x = dx; x < dx + settings.length; x++)
+        int totalLength = 2 * _settings.chunkLength * _settings.viewDistance + _settings.chunkLength;
+        for (int x = dx; x < dx + _settings.chunkLength; x++)
         {
-            for (int y = 0; y < settings.height; y++)
+            for (int y = 0; y < _settings.chunkHeight; y++)
             {
-                for (int z = dz; z < dz + settings.length; z++)
+                for (int z = dz; z < dz + _settings.chunkLength; z++)
                 {
                     if (Blocks[x, y, z] != BlockType.Air)
                     {
@@ -34,13 +39,15 @@ public class Chunk : MonoBehaviour
                             vertices.AddRange(GetCrossVertices(x, y, z));
                             uvs.AddRange(GetUVs(x, y, z));
                             uvs.AddRange(GetUVs(x, y, z));
-                            faces += 2;
+                            uvs.AddRange(GetUVs(x, y, z));
+                            uvs.AddRange(GetUVs(x, y, z));
+                            faces += 4;
                             triangles.AddRange(GetTriangles(faces, vertices.Count - 4 * faces));
                             continue;
                         }
 
                         //top
-                        if (y == settings.height - 1 || !BlockFromMesh(x, y + 1, z).OpaqueDown)
+                        if (y == _settings.chunkHeight - 1 || !BlockFromMesh(x, y + 1, z).OpaqueDown)
                         {
                             vertices.AddRange(GetVertices(x, y, z, Direction.Top));
                             uvs.AddRange(GetUVs(x, y, z, TileType.CubeTop));
@@ -108,13 +115,12 @@ public class Chunk : MonoBehaviour
     
     private Vector3[] GetVertices(int x, int y, int z, Direction direction)
     {
-        return BlockFromMesh(x, y, z).CubeVertices(new Vector3(x - dx, y, z - dz), direction);
+        return BlockMesh.CubeVertices(new Vector3(x - dx, y, z - dz), direction);
     }
     
     private Vector3[] GetCrossVertices(int x, int y, int z)
     {
-        return BlockFromMesh(x, y, z)
-            .CrossVertices(new Vector3(x - dx + Random.Range(-0.3f, 0.3f), y, z - dz + Random.Range(-0.3f, 0.3f)));
+        return BlockMesh.CrossVertices(new Vector3(x - dx + Random.Range(-0.3f, 0.3f), y, z - dz + Random.Range(-0.3f, 0.3f)));
     }
     
     private Vector2[] GetUVs(int x, int y, int z, TileType tileType = TileType.CubeSide)
