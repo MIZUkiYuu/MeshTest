@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -17,10 +18,11 @@ public class MeshCreate : MonoBehaviour
         
         _mesh = new Mesh();
         _meshFilter.mesh = _mesh;
-        _renderer.material.SetTexture(MainTex, AssetDatabase.LoadAssetAtPath<Texture>("Assets/grass_block.png"));
-    
+        //_renderer.material.SetTexture(MainTex, AssetDatabase.LoadAssetAtPath<Texture>("Assets/grass_block.png"));
+
         InitMesh();
     }
+    
 
     private void InitMesh()
     {

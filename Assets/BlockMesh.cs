@@ -19,7 +19,7 @@ public class BlockMesh
     private const float CrossPointS = 0.1464466f;    // (2 - √2)/4
 
     public bool OpaqueSide;
-    public bool OpaqueTop;  
+    public bool OpaqueTop;
     public bool OpaqueDown;
     public bool CrossTileType;
     private BlockMesh(int side, bool opaque = true, bool cross = false)

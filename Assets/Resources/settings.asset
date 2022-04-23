@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blockType: 1
   chunkLength: 16
-  chunkHeight: 128
-  viewDistance: 10
+  chunkHeight: 256
+  viewDistance: 20
   seed: 1
   relief: 100
-  terrainHeightMax: 64
+  terrainHeightMax: 120
   xScale: 1
   zScale: 1
